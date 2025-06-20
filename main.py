@@ -1,23 +1,23 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Set up Gemini API
+# ✅ Set up Gemini API
 genai.configure(api_key="AIzaSyAqLaxdKgFOOBJDIMmcXhYdecdN8KR5fQo")
 model = genai.GenerativeModel('gemini-pro')
 
+# ✅ Page setup
 st.set_page_config(page_title="AI Study Assistant", layout="centered")
-
 st.title("📘 Weekly Learning Assistant with AI")
 st.write("Choose your weekly topic, take a quick test, and ask AI for help if needed.")
 
-# Weekly topic selector
+# ✅ Weekly topic selector
 topic = st.selectbox("🗂️ Choose a topic", [
     "Simultaneous Equations", 
     "Quadratic Equations", 
     "Periodic Table"
 ])
 
-# Quiz questions per topic
+# ✅ Quiz questions per topic
 questions = {
     "Simultaneous Equations": {
         "What is the method to eliminate a variable?": ["Substitution", "Elimination", "Division", "Cross-multiplication"],
@@ -38,29 +38,46 @@ questions = {
     }
 }
 
-# Display quiz
+# ✅ Display quiz
 score = 0
 st.subheader(f"📝 Quiz on {topic}")
-for q, options in questions[topic].items():
-    user_ans = st.radio(q, options, key=q)
-    correct_ans = options[2] if topic == "Quadratic Equations" else options[1]
+for i, (q, options) in enumerate(questions[topic].items()):
+    user_ans = st.radio(q, options, key=f"{topic}-{i}")
+    
+    # ✅ Set correct answers manually for better accuracy
+    correct_answers = {
+        "Simultaneous Equations": ["Elimination", "2"],
+        "Quadratic Equations": ["Parabola", "x = (-b ± √(b² - 4ac)) / 2a"],
+        "Periodic Table": ["Atomic number", "Na"]
+    }
+    
+    correct_ans = correct_answers[topic][i]
     if user_ans == correct_ans:
         score += 1
 
-# Show results
+# ✅ Show quiz results
 if st.button("🎯 Submit Quiz"):
     st.success(f"You scored {score} out of {len(questions[topic])}!")
     if score < len(questions[topic]):
         st.info("Need help? Ask the AI assistant below 👇")
 
-# Gemini AI Section
+st.markdown("---")
+
+# ✅ Gemini AI Section
 st.subheader("🤖 Ask AI for Help")
 question = st.text_input("Enter your question (e.g., Explain quadratic formula)")
 
 if question:
     with st.spinner("Thinking..."):
         try:
-            response = model.generate_content(question)
+            prompt = f"""
+You are an AI tutor helping a secondary school student in Nigeria. 
+Explain this topic like a teacher would: clear, simple, and step-by-step. 
+Use simple English, break down any formulas, and give at least one example.
+
+The student's question is: {question}
+"""
+            response = model.generate_content(prompt)
             st.success(response.text)
         except Exception as e:
-            st.error(f"AI error: {e}")
+            st.error("AI could not answer. Please check your question or try again.")
