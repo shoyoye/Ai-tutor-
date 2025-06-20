@@ -37,10 +37,52 @@ questions = {
     }
 }
 
+# ✅ Correct answers
+correct_answers = {
+    "Simultaneous Equations": ["Elimination", "2"],
+    "Quadratic Equations": ["Parabola", "x = (-b ± √(b² - 4ac)) / 2a"],
+    "Periodic Table": ["Atomic number", "Na"]
+}
+
 # ✅ Quiz logic
 score = 0
 st.subheader(f"📝 Quiz on {topic}")
 for i, (q, options) in enumerate(questions[topic].items()):
     user_ans = st.radio(q, options, key=f"{topic}-{i}")
-    correct_answers = {
-        "Simultaneous Equations": ["El]()
+    correct_ans = correct_answers[topic][i]
+    if user_ans == correct_ans:
+        score += 1
+
+if st.button("🎯 Submit Quiz"):
+    st.success(f"You scored {score} out of {len(questions[topic])}!")
+    if score < len(questions[topic]):
+        st.info("Need help? Ask the AI assistant below 👇")
+
+st.markdown("---")
+
+# 🤖 AI Tutor Section
+st.subheader("🤖 Ask AI for Help")
+question = st.text_area("Ask your study question (e.g., Explain quadratic equations step-by-step):")
+
+if question:
+    with st.spinner("Thinking like your best teacher..."):
+        try:
+            prompt = f"""
+You are an expert secondary school teacher in Nigeria teaching JSS3/SS1 students.
+Please respond with:
+1. A clear, simple definition of the topic
+2. Step-by-step explanation
+3. A worked example using real numbers
+4. A friendly encouragement at the end
+
+The student's question is: {question}
+"""
+            response = model.generate_content(prompt)
+            answer = response.text.strip()
+
+            if answer:
+                st.success(answer)
+            else:
+                st.warning("The AI didn’t respond. Try asking again or rewording your question.")
+        except Exception as e:
+            st.error(f"AI error: {e}")
